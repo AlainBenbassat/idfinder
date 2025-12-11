@@ -44,15 +44,15 @@ class CRM_Idfinder_BAO_Processor {
   private function fillIds() {
     $worksheet = $this->outputFile->getActiveSheet();
 
-    foreach ($worksheet->getRowIterator() as $row) {
-      $id = $worksheet->getCellByColumnAndRow($this->columnHeadings['contact_id'], $row->getRowIndex())->getValue();
+    for ($i = 1; $i < 65000; $i++) {
+      $id = $worksheet->getCell($this->columnHeadings['contact_id'] . $i)->getValue();
       if (!empty($id)) {
         continue; // id already exists
       }
 
-      $firstName = $worksheet->getCellByColumnAndRow($this->columnHeadings['first_name'], $row->getRowIndex())->getValue();
-      $lastName = $worksheet->getCellByColumnAndRow($this->columnHeadings['last_name'], $row->getRowIndex())->getValue();
-      $email = $worksheet->getCellByColumnAndRow($this->columnHeadings['email'], $row->getRowIndex())->getValue();
+      $firstName = $worksheet->getCell($this->columnHeadings['first_name'] . $i)->getValue();
+      $lastName = $worksheet->getCell($this->columnHeadings['last_name'] . $i)->getValue();
+      $email = $worksheet->getCell($this->columnHeadings['email'] . $i)->getValue();
 
       if (empty($firstName) && empty($lastName) && empty($email)) {
         break; // no more data rows
@@ -61,7 +61,7 @@ class CRM_Idfinder_BAO_Processor {
       if (!empty($firstName) && !empty($lastName) && !empty($email)) {
         $id = CRM_Idfinder_BAO_Contact::get($firstName, $lastName, $email);
         if ($id) {
-          $worksheet->setCellValue($this->columnHeadings['contact_id'], $id);
+          $worksheet->setCellValue($this->columnHeadings['contact_id'] . $i, $id);
         }
       }
     }
@@ -106,8 +106,13 @@ class CRM_Idfinder_BAO_Processor {
   private function findColumnHeading(string $columnName): ?string {
     $worksheet = $this->outputFile->getActiveSheet();
     for ($i = 1; $i <= 255; $i++) {
-      $cell = $worksheet->getCell(PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($i) . 1);
+      $coord = PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($i) . 1;
+      $cell = $worksheet->getCell($coord);
       $cellValue = $cell->getValue();
+      if (empty($cellValue)) {
+        break;
+      }
+
       if ($this->nameMatches($columnName, $cellValue)) {
         return $cell->getColumn();
       }
@@ -139,7 +144,7 @@ class CRM_Idfinder_BAO_Processor {
 
   private function addColumnContactId() {
     $worksheet = $this->outputFile->getActiveSheet();
-    $worksheet->insertNewRowBefore(1, 1);
+    $worksheet->insertNewColumnBefore('A', 1);
     $worksheet->setCellValue('A1', 'contact_id');
 
     return 'A';
