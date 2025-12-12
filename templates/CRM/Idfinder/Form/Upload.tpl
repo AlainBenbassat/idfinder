@@ -1,10 +1,5 @@
-{* HEADER *}
-
-<div class="crm-submit-buttons">
-{include file="CRM/common/formButtons.tpl" location="top"}
-</div>
-
-{* FIELD EXAMPLE: OPTION 1 (AUTOMATIC LAYOUT) *}
+<h2>Upload an Excel File</h2>
+<div class="help">The Excel file you upload here should contain contact data with at least first name, last name, and email. Based on these three columns, the contact ID will be added to an existing ID column. If not present, a new column contact_id will be added.</div>
 
 {foreach from=$elementNames item=elementName}
   <div class="crm-section">
@@ -14,14 +9,6 @@
   </div>
 {/foreach}
 
-{* FIELD EXAMPLE: OPTION 2 (MANUAL LAYOUT)
-
-  <div>
-    <span>{$form.favorite_color.label}</span>
-    <span>{$form.favorite_color.html}</span>
-  </div>
-
-{* FOOTER *}
 <div class="crm-submit-buttons">
 {include file="CRM/common/formButtons.tpl" location="bottom"}
 </div>

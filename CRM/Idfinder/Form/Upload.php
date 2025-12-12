@@ -2,26 +2,10 @@
 
 use CRM_Idfinder_ExtensionUtil as E;
 
-/**
- * Form controller class
- *
- * @see https://docs.civicrm.org/dev/en/latest/framework/quickform/
- */
 class CRM_Idfinder_Form_Upload extends CRM_Core_Form {
-
-  /**
-   * @throws \CRM_Core_Exception
-   */
   public function buildQuickForm(): void {
-
-    // add form elements
-    $this->add(
-      'select', // field type
-      'favorite_color', // field name
-      'Favorite Color', // field label
-      $this->getColorOptions(), // list of options
-      TRUE // is required
-    );
+    $this->setTitle("Contact ID Finder");
+    $this->add('File', 'uploadFile', E::ts('Excel file'), ['size' => 30, 'maxlength' => 255], TRUE);
     $this->addButtons([
       [
         'type' => 'submit',
@@ -30,17 +14,24 @@ class CRM_Idfinder_Form_Upload extends CRM_Core_Form {
       ],
     ]);
 
-    // export form elements
     $this->assign('elementNames', $this->getRenderableElementNames());
     parent::buildQuickForm();
   }
 
   public function postProcess(): void {
-    $x = new CRM_Idfinder_BAO_Processor(
-      "/var/www/vhosts/local.ledennet.etion.be/web/sites/default/files/civicrm/tmp/a.xlsx",
-      "/var/www/vhosts/local.ledennet.etion.be/web/sites/default/files/civicrm/tmp/b.xlsx"
-    );
-    $x->process();
+    $values = $this->exportValues();
+
+    // get the selected file
+    $tmpFileName = $this->_submitFiles['uploadFile']['tmp_name'];
+    if (!$tmpFileName) {
+      CRM_Core_Session::setStatus(E::ts("Could not read %1. File too big?", $this->_submitFiles['uploadFile']['name']), 'Error', 'error');
+    }
+    else {
+      $idFinderProcessor = new CRM_Idfinder_BAO_Processor($tmpFileName);
+      $idFinderProcessor->process();
+      $idFinderProcessor->getOutput();
+    }
+
     parent::postProcess();
   }
 

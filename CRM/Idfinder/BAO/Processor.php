@@ -6,7 +6,6 @@ require_once  E::path('vendor/autoload.php');
 class CRM_Idfinder_BAO_Processor {
   private PhpOffice\PhpSpreadsheet\Spreadsheet $inputFile;
   private PhpOffice\PhpSpreadsheet\Spreadsheet $outputFile;
-  private string $outputFileName;
 
   // TODO: now hardcoded, but should be configurable
   private array $columnHeadingSynonyms = [
@@ -18,13 +17,7 @@ class CRM_Idfinder_BAO_Processor {
 
   private array $columnHeadings = [];
 
-  public function __construct(string $inputFileName, string $outputFileName) {
-    if ($inputFileName == $outputFileName) {
-      throw new Exception(E::ts("Input and output file names must be different."));
-    }
-
-    $this->outputFileName = $outputFileName;
-
+  public function __construct(string $inputFileName) {
     $this->inputFile = \PhpOffice\PhpSpreadsheet\IOFactory::load($inputFileName);
     $this->outputFile = clone $this->inputFile;
   }
@@ -36,9 +29,24 @@ class CRM_Idfinder_BAO_Processor {
     $this->findEmailColumn();
 
     $this->fillIds();
+  }
+
+  public function getOutput() {
+    $fileName = 'idfinder_' . date('Ymd_His') . '.xlsx';
+
+    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    header('Content-Disposition: attachment;filename="' . $fileName . '"');
+    header('Cache-Control: max-age=0');
 
     $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($this->outputFile, "Xlsx");
-    $writer->save($this->outputFileName);
+    $writer->save('php://output');
+
+    CRM_Utils_System::civiExit();
+  }
+
+  public function saveAs(string $fileName) {
+    $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($this->outputFile, "Xlsx");
+    $writer->save($fileName);
   }
 
   private function fillIds() {
