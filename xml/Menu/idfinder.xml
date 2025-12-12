@@ -6,4 +6,10 @@
     <title>Upload</title>
     <access_arguments>access CiviCRM</access_arguments>
   </item>
+  <item>
+    <path>civicrm/idfinder/settings</path>
+    <page_callback>CRM_Idfinder_Form_Settings</page_callback>
+    <title>Settings</title>
+    <access_arguments>access CiviCRM</access_arguments>
+  </item>
 </menu>

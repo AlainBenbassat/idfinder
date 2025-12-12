@@ -28,5 +28,7 @@ function idfinder_civicrm_install(): void {
  * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_enable
  */
 function idfinder_civicrm_enable(): void {
+  CRM_Idfinder_BAO_Navigation::createIfNotExists();
+
   _idfinder_civix_civicrm_enable();
 }

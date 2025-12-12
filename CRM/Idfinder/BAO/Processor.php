@@ -8,18 +8,19 @@ class CRM_Idfinder_BAO_Processor {
   private PhpOffice\PhpSpreadsheet\Spreadsheet $outputFile;
 
   // TODO: now hardcoded, but should be configurable
-  private array $columnHeadingSynonyms = [
-    'contact_id' => ['id', 'contactnummer'],
-    'first_name' => ['firstname', 'voornaam'],
-    'last_name' => ['lastname', 'achternaam', 'naam', 'familienaam'],
-    'email' => ['emailadres', 'e-mail'],
-  ];
+  private array $columnHeadingSynonyms = [];
 
   private array $columnHeadings = [];
 
   public function __construct(string $inputFileName) {
     $this->inputFile = \PhpOffice\PhpSpreadsheet\IOFactory::load($inputFileName);
     $this->outputFile = clone $this->inputFile;
+
+    $settings = new CRM_Idfinder_BAO_Settings();
+    $this->columnHeadingSynonyms['contact_id'] = explode(',', $settings->getContactIdSynonyms());
+    $this->columnHeadingSynonyms['first_name'] = explode(',', $settings->getFirstNameSynonyms());
+    $this->columnHeadingSynonyms['last_name'] = explode(',', $settings->getLastNameSynonyms());
+    $this->columnHeadingSynonyms['email'] = explode(',', $settings->getEmailSynonyms());
   }
 
   public function process() {
@@ -53,14 +54,14 @@ class CRM_Idfinder_BAO_Processor {
     $worksheet = $this->outputFile->getActiveSheet();
 
     for ($i = 1; $i < 65000; $i++) {
-      $id = $worksheet->getCell($this->columnHeadings['contact_id'] . $i)->getValue();
+      $id = trim($worksheet->getCell($this->columnHeadings['contact_id'] . $i)->getValue());
       if (!empty($id)) {
         continue; // id already exists
       }
 
-      $firstName = $worksheet->getCell($this->columnHeadings['first_name'] . $i)->getValue();
-      $lastName = $worksheet->getCell($this->columnHeadings['last_name'] . $i)->getValue();
-      $email = $worksheet->getCell($this->columnHeadings['email'] . $i)->getValue();
+      $firstName = trim($worksheet->getCell($this->columnHeadings['first_name'] . $i)->getValue());
+      $lastName = trim($worksheet->getCell($this->columnHeadings['last_name'] . $i)->getValue());
+      $email = trim($worksheet->getCell($this->columnHeadings['email'] . $i)->getValue());
 
       if (empty($firstName) && empty($lastName) && empty($email)) {
         break; // no more data rows
@@ -116,7 +117,7 @@ class CRM_Idfinder_BAO_Processor {
     for ($i = 1; $i <= 255; $i++) {
       $coord = PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($i) . 1;
       $cell = $worksheet->getCell($coord);
-      $cellValue = $cell->getValue();
+      $cellValue = trim($cell->getValue());
       if (empty($cellValue)) {
         break;
       }
